@@ -12,22 +12,26 @@ export default async function handler(req, res) {
     const openaiRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4',
+        model: 'gpt-4-1106-preview', // ✅ Dit werkt vrijwel altijd indien GPT-4 actief is
         messages: [{ role: 'user', content: prompt }],
-      })
+      }),
     });
 
     const data = await openaiRes.json();
+
     if (!openaiRes.ok) {
-      throw new Error(JSON.stringify(data));
+      throw new Error(data.error?.message || 'Onbekende fout bij OpenAI');
     }
 
-    return res.status(200).json({ result: data.choices[0].message.content });
+    res.status(200).json({ result: data.choices[0].message.content });
   } catch (error) {
-    return res.status(500).json({ error: 'OpenAI request failed', details: error.message });
+    res.status(500).json({
+      error: 'OpenAI request failed',
+      details: error.message,
+    });
   }
 }
