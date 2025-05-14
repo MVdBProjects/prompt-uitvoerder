@@ -1,3 +1,5 @@
+// pages/api/generate.js
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ message: 'Only POST allowed' });
@@ -16,20 +18,19 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4-1106-preview', // ✅ Dit werkt vrijwel altijd indien GPT-4 actief is
+        model: 'gpt-4o', // ✅ juiste modelnaam
         messages: [{ role: 'user', content: prompt }],
       }),
     });
 
     const data = await openaiRes.json();
-
     if (!openaiRes.ok) {
-      throw new Error(data.error?.message || 'Onbekende fout bij OpenAI');
+      throw new Error(JSON.stringify(data.error));
     }
 
-    res.status(200).json({ result: data.choices[0].message.content });
+    return res.status(200).json({ result: data.choices[0].message.content });
   } catch (error) {
-    res.status(500).json({
+    return res.status(500).json({
       error: 'OpenAI request failed',
       details: error.message,
     });
